@@ -1,0 +1,14 @@
+{
+  "name": "prompt-brain",
+  "version": "0.1.0",
+  "description": "Optimize your prompts with one command - analyzes weaknesses, applies best practices, and reconstructs with a changelog",
+  "author": {
+    "name": "Tarek Steiß",
+    "email": "contact@tarek.codes",
+    "url": "https://tarek.codes"
+  },
+  "repository": "https://github.com/tarekst/prompt-brain",
+  "homepage": "https://github.com/tarekst/prompt-brain#readme",
+  "keywords": ["prompt", "optimize", "improve", "best-practices", "changelog"],
+  "license": "MIT"
+}
