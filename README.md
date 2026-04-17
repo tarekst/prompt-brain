@@ -15,7 +15,7 @@ claude plugin install ./prompt-brain
 ## Usage
 
 ```
-/optimize-prompt [your prompt to optimize]
+/prompt-brain:optimize-prompt [your prompt to optimize]
 ```
 
 Paste your prompt after the command. The plugin will:
@@ -28,7 +28,7 @@ Paste your prompt after the command. The plugin will:
 ### Example
 
 ```
-/optimize-prompt Analyze the codebase and create a migration plan for the new API
+/prompt-brain:optimize-prompt Analyze the codebase and create a migration plan for the new API
 ```
 
 Output: An optimized prompt with proper phases, output specifications, constraints, and success criteria -- plus a changelog explaining what was improved and why.

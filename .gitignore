@@ -1,7 +1,6 @@
 # Plugin local settings
 .claude/*.local.md
 .claude/settings.local.json
-CLAUDE.md
 
 .research/
 

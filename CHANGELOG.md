@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-04-18
+
+### Added
+
+- **Explicit `model: claude-opus-4-7` pin** in skill frontmatter — ensures deep reasoning for the 5-step optimization algorithm.
+- **Explicit `allowed-tools: []` declaration** — documents that the skill is a pure text transform; no permission prompts will be raised.
+- **`when_to_use` frontmatter field** with trigger hints for documentation and future policy changes.
+- **`skills/optimize-prompt/examples.md`** with 10 worked examples (relocated from root `examples.txt`, reformatted as Markdown with weakness annotations).
+- **Tracked `CLAUDE.md`** with architecture docs, frontmatter policy, progressive disclosure rules, and development notes.
+
+### Changed
+
+- **README usage examples** now use the canonical namespaced invocation `/prompt-brain:optimize-prompt` instead of the bare form.
+
+### Removed
+
+- Root-level `examples.txt` (content relocated to `skills/optimize-prompt/examples.md`).
+- `CLAUDE.md` from `.gitignore` (now tracked).
+
 ## [0.1.0] - 2026-04-06
 
 Initial release of prompt-brain.
