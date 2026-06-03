@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-06-03
+
+State-of-the-art alignment with the latest Claude Code skill and plugin conventions.
+
+### Added
+
+- **`.claude-plugin/marketplace.json`** — single-plugin marketplace catalog (GitHub source), enabling `/plugin marketplace add tarekst/prompt-brain` + `/plugin install prompt-brain@tarek-plugins` with versioned updates.
+- **`evals/optimize-prompt.md`** — evaluation rubric with 5 test scenarios and expected-behavior bullets (Anthropic "build evaluations first"). Out-of-band; never loaded by the skill.
+- **Full worked examples in `examples.md`** — three input → optimized-output → changelog pairs (Anthropic "examples pattern"), now referenced from `SKILL.md`.
+
+### Changed
+
+- **Model pin `claude-opus-4-7` → `claude-opus-4-8`** in skill frontmatter (latest Opus).
+- **`examples.md` rewritten** from a weakness-only list into worked I/O pairs plus a condensed weakness quick-reference table.
+- **`SKILL.md` voice tightened** to imperative/infinitive ("Execute the 5-step algorithm…", "Present the result…") per skill-authoring best practices.
+- **README** — marketplace install flow added; model and supporting files documented.
+- **CLAUDE.md** — corrected `allowed-tools` semantics, documented the inline-algorithm rationale for progressive disclosure, added marketplace/evals components and a Distribution section.
+
+### Fixed
+
+- **Documentation of `allowed-tools`** — it only *pre-approves* tools and never restricts them, so the empty-array "pure text transform contract" claim was incorrect.
+
+### Removed
+
+- **No-op `allowed-tools: []`** from skill frontmatter (an empty allow-list does nothing).
+
 ## [0.2.0] - 2026-04-18
 
 ### Added

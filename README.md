@@ -5,10 +5,25 @@ A Claude Code plugin that optimizes your prompts. Analyzes weaknesses, applies b
 ## Installation
 
 ```bash
-# Development (load from local directory)
+# Recommended: add the marketplace, then install
+claude plugin marketplace add tarekst/prompt-brain
+claude plugin install prompt-brain@tarek-plugins
+```
+
+Or from inside Claude Code:
+
+```
+/plugin marketplace add tarekst/prompt-brain
+/plugin install prompt-brain@tarek-plugins
+```
+
+For local development:
+
+```bash
+# Load from a local directory
 claude --plugin-dir ./prompt-brain
 
-# Or install to user scope
+# Or install to user scope from a local path
 claude plugin install ./prompt-brain
 ```
 
@@ -44,6 +59,11 @@ The optimization follows a 5-step algorithm:
 | 3. Best-Practice Matching | Classifies prompt type and selects applicable patterns |
 | 4. Prompt Reconstruction | Rebuilds from scratch with top-down structure and measurable criteria |
 | 5. Changelog Generation | Explains every change as a what->why pair |
+
+The skill runs on Claude Opus 4.8 at maximum effort for deep reasoning. See
+[`skills/optimize-prompt/examples.md`](skills/optimize-prompt/examples.md) for worked
+input → optimized-output → changelog examples, and
+[`evals/optimize-prompt.md`](evals/optimize-prompt.md) for the test scenarios.
 
 ## License
 

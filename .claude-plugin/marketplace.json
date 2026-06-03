@@ -1,0 +1,20 @@
+{
+  "name": "tarek-plugins",
+  "owner": {
+    "name": "Tarek Steiß",
+    "email": "contact@tarek.codes"
+  },
+  "description": "Tarek's Claude Code plugins.",
+  "plugins": [
+    {
+      "name": "prompt-brain",
+      "source": {
+        "source": "github",
+        "repo": "tarekst/prompt-brain"
+      },
+      "description": "Optimize your prompts with one command — analyzes weaknesses, applies best practices, and reconstructs with a changelog.",
+      "category": "productivity",
+      "keywords": ["prompt", "optimize", "best-practices"]
+    }
+  ]
+}

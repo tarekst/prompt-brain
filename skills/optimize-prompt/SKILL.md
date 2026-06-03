@@ -1,20 +1,19 @@
 ---
 name: optimize-prompt
-description: Analyze and optimize any prompt for Claude Code. Identifies weaknesses, applies best practices, reconstructs the prompt, and generates a changelog. Use when the user wants to improve a prompt.
+description: Analyzes and optimizes any Claude Code prompt — identifies weaknesses, applies best practices, reconstructs the prompt, and generates a changelog. Use when refining, rewriting, or critiquing a prompt before sending it to Claude Code.
 when_to_use: |
   Use when the user explicitly wants to refine, rewrite, or critique a prompt they intend to send to Claude Code. Typical triggers: "optimize this prompt", "make this prompt better", "rewrite as a plan mode prompt". Do NOT auto-invoke — this skill is manual-only (disable-model-invocation: true).
 user-invocable: true
 disable-model-invocation: true
 argument-hint: [prompt to optimize]
-model: claude-opus-4-7
+model: claude-opus-4-8
 effort: max
-allowed-tools: []
 ---
 
 # Prompt Optimization Algorithm
 
-You are executing a 5-step prompt optimization algorithm. Follow each step sequentially.
-Do NOT skip steps. Each step's output feeds the next.
+Execute the 5-step prompt optimization algorithm below, in order. Do NOT skip steps —
+each step's output feeds the next.
 
 ## Input
 
@@ -23,6 +22,8 @@ The user's prompt to optimize:
 $ARGUMENTS
 
 If no prompt was provided, ask the user to provide the prompt they want optimized.
+
+For worked input → optimized-output → changelog examples, see [examples.md](examples.md).
 
 ---
 
@@ -201,7 +202,7 @@ Generate a human-readable changelog comparing the original and optimized prompt.
 
 ## Output Format
 
-Present your result in exactly this structure:
+Present the result in exactly this structure:
 
 ### 1. The Optimized Prompt
 Output the reconstructed prompt inside a fenced code block (triple backticks) so the user can copy it directly.
