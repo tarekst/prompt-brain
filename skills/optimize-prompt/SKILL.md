@@ -7,7 +7,6 @@ user-invocable: true
 disable-model-invocation: true
 argument-hint: [prompt to optimize]
 model: claude-opus-4-8
-effort: max
 ---
 
 # Prompt Optimization Algorithm

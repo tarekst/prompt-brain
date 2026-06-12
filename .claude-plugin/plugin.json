@@ -1,6 +1,6 @@
 {
   "name": "prompt-brain",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Optimize your prompts with one command - analyzes weaknesses, applies best practices, and reconstructs with a changelog",
   "author": {
     "name": "Tarek Steiß",

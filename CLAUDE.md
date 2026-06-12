@@ -26,7 +26,7 @@ Claude Code is the runtime -- no external code, scripts, or services.
 
 - `user-invocable: true` + `disable-model-invocation: true` -- this skill runs only when the user types `/prompt-brain:optimize-prompt`. Claude never auto-invokes it. Because `disable-model-invocation` is set, the skill's `description` is not loaded into context during normal sessions -- it only surfaces in the `/` menu, so optimize it for human readers, not auto-discovery keywords.
 - `model: claude-opus-4-8` is pinned deliberately. The 5-step algorithm needs deep reasoning; do not downgrade without re-evaluating output quality. Keep this current with the latest Opus on each release.
-- `effort: max` -- full reasoning depth.
+- No `effort` field -- deliberately omitted so the skill inherits the session's current effort level. Omission is the only inherit mechanism (there is no `effort: inherit` value). Do not re-add a pinned effort value without re-evaluating; users who want full depth can run `/effort max` before invoking.
 - No `allowed-tools` / `disallowed-tools`. `allowed-tools` only *pre-approves* tools (it never restricts them), so an empty list is a no-op -- it is intentionally omitted. The skill is a pure text transform and needs no tools beyond the default Read access used to load `examples.md` on demand. Do not re-add `allowed-tools: []`; it documents nothing.
 
 ## Progressive Disclosure

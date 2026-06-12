@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-13
+
+### Changed
+
+- **Skill effort now follows the session** — removed the `effort: max` pin from the skill frontmatter. With the field omitted, the skill inherits the session's current effort level (omission is the documented inherit mechanism; there is no `effort: inherit` value). Run `/effort max` before invoking if full reasoning depth is wanted.
+- **README and CLAUDE.md** updated to document the session-effort behavior instead of the former maximum-effort policy.
+
 ## [0.3.0] - 2026-06-03
 
 State-of-the-art alignment with the latest Claude Code skill and plugin conventions.

@@ -60,7 +60,7 @@ The optimization follows a 5-step algorithm:
 | 4. Prompt Reconstruction | Rebuilds from scratch with top-down structure and measurable criteria |
 | 5. Changelog Generation | Explains every change as a what->why pair |
 
-The skill runs on Claude Opus 4.8 at maximum effort for deep reasoning. See
+The skill runs on Claude Opus 4.8 and inherits the session's current effort level. See
 [`skills/optimize-prompt/examples.md`](skills/optimize-prompt/examples.md) for worked
 input → optimized-output → changelog examples, and
 [`evals/optimize-prompt.md`](evals/optimize-prompt.md) for the test scenarios.
