@@ -1,7 +1,7 @@
 {
   "name": "prompt-brain",
-  "version": "0.4.0",
-  "description": "Optimize your prompts with one command - analyzes weaknesses, applies best practices, and reconstructs with a changelog",
+  "version": "0.5.0",
+  "description": "Optimize and migrate prompts — analyze weaknesses, apply best practices, and migrate a prompt from one model to another, each with a changelog.",
   "author": {
     "name": "Tarek Steiß",
     "email": "contact@tarek.codes",
@@ -9,6 +9,6 @@
   },
   "repository": "https://github.com/tarekst/prompt-brain",
   "homepage": "https://github.com/tarekst/prompt-brain#readme",
-  "keywords": ["prompt", "optimize", "improve", "best-practices", "changelog"],
+  "keywords": ["prompt", "optimize", "migrate", "model", "best-practices", "changelog"],
   "license": "MIT"
 }

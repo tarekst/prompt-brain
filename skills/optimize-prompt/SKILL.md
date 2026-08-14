@@ -2,11 +2,11 @@
 name: optimize-prompt
 description: Analyzes and optimizes any Claude Code prompt — identifies weaknesses, applies best practices, reconstructs the prompt, and generates a changelog. Use when refining, rewriting, or critiquing a prompt before sending it to Claude Code.
 when_to_use: |
-  Use when the user explicitly wants to refine, rewrite, or critique a prompt they intend to send to Claude Code. Typical triggers: "optimize this prompt", "make this prompt better", "rewrite as a plan mode prompt". Do NOT auto-invoke — this skill is manual-only (disable-model-invocation: true).
+  Use when the user explicitly wants to refine, rewrite, or critique a prompt they intend to send to Claude Code. Typical triggers: "optimize this prompt", "make this prompt better", "rewrite as a plan mode prompt".
 user-invocable: true
 disable-model-invocation: true
-argument-hint: [prompt to optimize]
-model: claude-opus-4-8
+argument-hint: "[prompt to optimize]"
+model: claude-opus-5
 ---
 
 # Prompt Optimization Algorithm

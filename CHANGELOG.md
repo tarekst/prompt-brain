@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-08-14
+
+Adds a second skill: cross-model prompt migration.
+
+### Added
+
+- **`migrate-prompt` command** (`/prompt-brain:migrate-prompt <current-model> <target-model> <prompt>`) — understands a prompt through its source model's guide and re-tunes it for a target model, outputting the migrated prompt plus a model-A → model-B changelog.
+- **`skills/migrate-prompt/model-guides/` (17 guides)** — per-model prompting guides for Claude (Opus 4.8, Sonnet 4.6, Haiku 4.5, Fable 5), OpenAI (GPT-5, GPT-5 mini, o3, GPT-4.1), Google (Gemini 2.5 Pro/Flash, Gemma 3), Meta (Llama 4 Maverick/Scout), xAI (Grok 4), Mistral (Large 2), and DeepSeek (R1, V3). Each follows a fixed schema and cites official vendor sources; unverifiable claims are marked "(unbelegt)".
+- **Lazy-loading runtime contract** — the command resolves both model arguments against an in-`SKILL.md` registry (canonical id + aliases) and reads **only** the two matching guides, never the whole folder. Unknown models list the available set and stop instead of guessing.
+
+### Changed
+
+- **Model pin `claude-opus-4-8` → `claude-opus-5`** in both skills' frontmatter (latest Opus, per the frontmatter policy).
+- **`plugin.json` / `marketplace.json`** — description and keywords updated for the migrate capability.
+- **README & CLAUDE.md** — document the second skill, the model-guide schema, and the registry-sync requirement.
+
 ## [0.4.0] - 2026-06-13
 
 ### Changed

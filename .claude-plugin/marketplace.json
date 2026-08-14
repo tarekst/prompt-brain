@@ -12,9 +12,9 @@
         "source": "github",
         "repo": "tarekst/prompt-brain"
       },
-      "description": "Optimize your prompts with one command — analyzes weaknesses, applies best practices, and reconstructs with a changelog.",
+      "description": "Optimize and migrate prompts — analyze weaknesses, apply best practices, and migrate a prompt from one model to another, each with a changelog.",
       "category": "productivity",
-      "keywords": ["prompt", "optimize", "best-practices"]
+      "keywords": ["prompt", "optimize", "migrate", "model", "best-practices", "changelog"]
     }
   ]
 }
