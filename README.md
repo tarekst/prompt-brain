@@ -62,12 +62,21 @@ migration changelog.
 /prompt-brain:migrate-prompt deepseek-r1 claude-opus-4-8 <your R1-tuned prompt>
 ```
 
-Supported models include Claude (Opus 4.8, Sonnet 4.6, Haiku 4.5, Fable 5), OpenAI (GPT-5,
-GPT-5 mini, o3, GPT-4.1), Google (Gemini 2.5 Pro/Flash, Gemma 3), Meta (Llama 4
-Maverick/Scout), xAI (Grok 4), Mistral (Large 2), and DeepSeek (R1, V3). Each lives as a guide
-in [`skills/migrate-prompt/model-guides/`](skills/migrate-prompt/model-guides/); pass an
-unknown model and the command lists what is available instead of guessing. Guide bodies are in
-German and cite official vendor docs.
+Supported models (29 guides) include Claude (Opus 5, Sonnet 5, Fable 5, Haiku 4.5, Opus 4.8,
+Sonnet 4.6), OpenAI (GPT-5.6 Sol/Terra, GPT-5, GPT-5 mini, o3, GPT-4.1), Google (Gemini 3.7
+Flash, Gemini 3.1 Pro, Gemini 2.5 Pro/Flash, Gemma 3), xAI (Grok 4.6, 4.3, 4), Mistral (Large
+3, Large 2), DeepSeek (V4-Flash, V4-Pro, R1, V3), and Meta (Muse Glimmer 30B, Llama 4
+Maverick/Scout). Each lives as a guide in
+[`skills/migrate-prompt/model-guides/`](skills/migrate-prompt/model-guides/); pass an unknown
+model and the command lists what is available instead of guessing. Guide bodies are in German
+and cite official vendor docs.
+
+Bare family aliases (`opus`, `sonnet`, `mistral-large`) always resolve to the newest guide of
+that family; version-pinned aliases (`opus-4.8`, `grok-4-latest`) stay on their own. Superseded
+models carry `status: legacy` — plus a `successor` wherever the vendor documents one — and the
+migration changelog ends with a `Guide-Stand`
+footer listing both guides' `last_verified` dates — with a staleness warning when a guide is
+older than six months, and a successor hint when you migrate *to* a legacy model.
 
 ## How It Works
 
@@ -81,10 +90,11 @@ The optimization follows a 5-step algorithm:
 | 4. Prompt Reconstruction | Rebuilds from scratch with top-down structure and measurable criteria |
 | 5. Changelog Generation | Explains every change as a what->why pair |
 
-The skill runs on Claude Opus 5 and inherits the session's current effort level. See
-[`skills/optimize-prompt/examples.md`](skills/optimize-prompt/examples.md) for worked
-input → optimized-output → changelog examples, and
-[`evals/optimize-prompt.md`](evals/optimize-prompt.md) for the test scenarios.
+Both skills run on Claude Opus 5 and adapt their depth to the session's effort level
+(`low`/`medium` run a condensed pass; `high`+ runs the full algorithm). See
+[`skills/optimize-prompt/examples.md`](skills/optimize-prompt/examples.md) and
+[`skills/migrate-prompt/examples.md`](skills/migrate-prompt/examples.md) for worked examples,
+and [`evals/`](evals/) for the test scenarios of both skills.
 
 ## License
 

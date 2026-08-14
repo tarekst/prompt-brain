@@ -4,6 +4,7 @@ vendor: Anthropic
 family: Claude
 aliases: [haiku, haiku-4.5, claude-haiku-4.5, haiku4.5]
 last_verified: 2026-06-13
+status: current
 ---
 
 # Claude Haiku 4.5

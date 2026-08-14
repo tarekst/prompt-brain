@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-08-14
+
+Current-generation model coverage, a machine-checked registry, and effort-adaptive skills.
+
+### Added
+
+- **12 new model guides** — Claude Opus 5 and Sonnet 5, OpenAI GPT-5.6 Sol/Terra, Gemini 3.7 Flash and 3.1 Pro, Grok 4.6 and 4.3, DeepSeek V4-Flash and V4-Pro, Mistral Large 3, and Meta Muse Glimmer 30B (29 guides total). Every model id was verified against official vendor documentation before a guide was written; unverifiable candidates were skipped rather than guessed.
+- **Guide freshness metadata** — required `status: current|legacy` in the guide frontmatter, plus `successor: <id>` wherever the vendor documents one (`gpt-4.1` and `gemini-2.5-pro` are marked legacy without a successor, because no official replacement is documented). `migrate-prompt` now closes its changelog with a `Guide-Stand` footer listing both guides' `last_verified` dates, warns when a guide is older than six months, and suggests the successor when migrating *to* a legacy model.
+- **`scripts/check-registry-sync.mjs`** — dependency-free Node check that the in-`SKILL.md` registry table and the guide frontmatter are an exact mirror. Also catches aliases that can never resolve (whitespace, id-duplicates, cross-model collisions) and guides missing `last_verified` or a `## Quellen` section.
+- **`.github/workflows/validate.yml`** — CI running the sync check plus `claude plugin validate` on both targets.
+- **`skills/migrate-prompt/examples.md`** — one fully worked migration (Opus 4.8 → Fable 5) as the load-on-demand calibration layer, mirroring `optimize-prompt/examples.md`.
+- **`evals/migrate-prompt.md`** — 9 scenarios covering the runtime contract: unknown model stops without reading a guide, source == target short-circuits, exactly two guide reads on the happy path, "(unbelegt)" flagging, case-insensitive aliases, language preservation, parsing robustness against model names inside the prompt body, migrating *to* a legacy model (freshness footer + successor hint), and effort-adaptive depth.
+- **Effort-adaptive depth** — both skills carry a `${CLAUDE_EFFORT}` calibration block: `low`/`medium` run a condensed pass, `high`+ the full algorithm. Makes the v0.4.0 "inherit the session effort" design deterministic instead of implicit.
+- **`displayName`** in `plugin.json` (human-readable name in the `/plugin` picker) and **`$schema`** in both manifests for editor validation.
+
+### Changed
+
+- **Bare family aliases now resolve to the newest generation** — `opus` → `claude-opus-5`, `sonnet` → `claude-sonnet-5`, `mistral-large`/`mistral-large-latest` → `mistral-large-3`. Version-pinned aliases (`opus-4.8`, `mistral-large-2407`) stay on their own guide. The rule is documented in `SKILL.md` and `CLAUDE.md`.
+- **`migrate-prompt` argument parsing hardened** — tolerates `from X to Y`, `X -> Y`, and quoted model tokens; an empty prompt component now asks for the prompt instead of restating the usage line.
+- **12 superseded guides marked `status: legacy`**, each with its documented successor where the vendor names one.
+- **A Gemini 3.6 Flash guide was drafted and dropped** before release in favour of Gemini 3.7 Flash, which Google's model list marks "New Stable". Nothing was removed from a shipped release.
+
 ## [0.5.0] - 2026-08-14
 
 Adds a second skill: cross-model prompt migration.

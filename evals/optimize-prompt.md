@@ -2,7 +2,7 @@
 
 Test scenarios for the `optimize-prompt` skill, following Anthropic's "build evaluations
 first" guidance, adapted for a text-transform skill (no files, no scripts). These are NOT
-loaded by the skill — they live at the repo root for out-of-band testing.
+loaded by the skill — they live in `evals/` for out-of-band testing.
 
 How to run: invoke `/prompt-brain:optimize-prompt <input>` for each scenario and confirm
 every `expected_behavior` bullet holds. The skill passes a scenario only if all bullets are

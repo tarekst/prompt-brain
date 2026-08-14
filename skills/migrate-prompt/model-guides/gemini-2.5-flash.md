@@ -4,6 +4,8 @@ vendor: Google
 family: Gemini
 aliases: [gemini25flash, gemini-25-flash, gemini2.5flash]
 last_verified: 2026-06-13
+status: legacy
+successor: gemini-3.7-flash
 ---
 
 # Gemini 2.5 Flash

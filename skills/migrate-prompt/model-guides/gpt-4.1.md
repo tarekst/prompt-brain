@@ -4,6 +4,7 @@ vendor: OpenAI
 family: GPT
 aliases: [gpt4.1, gpt-4-1, gpt41, gpt-4.1-2025-04-14]
 last_verified: 2026-06-13
+status: legacy
 ---
 
 # GPT-4.1

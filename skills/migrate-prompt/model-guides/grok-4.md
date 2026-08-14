@@ -4,6 +4,8 @@ vendor: xAI
 family: Grok
 aliases: [grok4, grok-4-latest, grok-4-0709, xai.grok-4]
 last_verified: 2026-06-13
+status: legacy
+successor: grok-4.6
 ---
 
 # Grok 4

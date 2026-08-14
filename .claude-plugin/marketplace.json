@@ -1,4 +1,5 @@
 {
+  "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
   "name": "tarek-plugins",
   "owner": {
     "name": "Tarek Steiß",

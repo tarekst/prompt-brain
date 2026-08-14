@@ -4,6 +4,8 @@ vendor: OpenAI
 family: GPT
 aliases: [gpt5, openai-gpt-5, openai-gpt5]
 last_verified: 2026-06-13
+status: legacy
+successor: gpt-5.6-sol
 ---
 
 # GPT-5

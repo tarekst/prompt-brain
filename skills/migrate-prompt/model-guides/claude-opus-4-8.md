@@ -2,8 +2,10 @@
 model: claude-opus-4-8
 vendor: Anthropic
 family: Claude
-aliases: [opus, opus-4.8, claude-opus-4.8, opus4.8]
+aliases: [opus-4.8, claude-opus-4.8, opus4.8]
 last_verified: 2026-06-13
+status: legacy
+successor: claude-opus-5
 ---
 
 # Claude Opus 4.8

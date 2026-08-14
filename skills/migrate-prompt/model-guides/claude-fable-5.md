@@ -4,13 +4,14 @@ vendor: Anthropic
 family: Claude
 aliases: [fable, fable-5, fable5]
 last_verified: 2026-06-13
+status: current
 ---
 
 # Claude Fable 5
 
 ## Reasoning / Thinking
 - Typ: **immer an**. `thinking` einfach weglassen (adaptives Thinking ist automatisch aktiv); ein expliziter `{type: "disabled"}` liefert 400, ebenso `{type: "enabled", budget_tokens: N}`. Tiefe ausschließlich über `output_config.effort` steuern (`low | medium | high | xhigh | max`).
-- Die rohe Chain-of-Thought wird nie zurückgegeben. `display: "summarized"` liefert eine Zusammenfassung, Default `"omitted"` liefert leere Thinking-Blöcke. Auf demselben Modell Thinking-Blöcke unverändert zurückgeben; andere Modelle verwerfen sie (unbelastet).
+- Die rohe Chain-of-Thought wird nie zurückgegeben. `display: "summarized"` liefert eine Zusammenfassung, Default `"omitted"` liefert leere Thinking-Blöcke. Auf demselben Modell Thinking-Blöcke unverändert zurückgeben; andere Modelle verwerfen sie (und rechnen sie nicht ab).
 - Sampling-Parameter `temperature`/`top_p`/`top_k` sind entfernt (400).
 
 ## Prompting-Stil

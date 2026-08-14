@@ -4,6 +4,8 @@ vendor: DeepSeek
 family: DeepSeek
 aliases: [deepseek-chat, v3, deepseek-v3-base, deepseek-v3-0324, deepseek-v3-chat]
 last_verified: 2026-06-13
+status: legacy
+successor: deepseek-v4-flash
 ---
 
 # DeepSeek-V3

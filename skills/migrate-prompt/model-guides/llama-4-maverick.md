@@ -4,6 +4,7 @@ vendor: Meta
 family: Llama
 aliases: [llama4-maverick, llama-4-maverick-17b, llama-4-maverick-17b-128e-instruct, llama4:maverick]
 last_verified: 2026-06-13
+status: current
 ---
 
 # Llama 4 Maverick

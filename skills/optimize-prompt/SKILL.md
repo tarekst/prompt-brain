@@ -14,6 +14,15 @@ model: claude-opus-5
 Execute the 5-step prompt optimization algorithm below, in order. Do NOT skip steps —
 each step's output feeds the next.
 
+## Depth Calibration
+
+Current session effort: `${CLAUDE_EFFORT}`.
+
+- `low` / `medium`: condensed pass -- do NOT read examples.md; check only the weakness
+  categories that clearly apply; keep the changelog to major items.
+- `high` / `xhigh` / `max`: full algorithm across all 7 weakness categories; consult
+  [examples.md](examples.md) when calibration helps.
+
 ## Input
 
 The user's prompt to optimize:
@@ -21,8 +30,6 @@ The user's prompt to optimize:
 $ARGUMENTS
 
 If no prompt was provided, ask the user to provide the prompt they want optimized.
-
-For worked input → optimized-output → changelog examples, see [examples.md](examples.md).
 
 ---
 

@@ -4,6 +4,8 @@ vendor: Google
 family: Gemini
 aliases: [gemini-2.5-pro-preview-06-05, gemini25pro, gemini-25-pro, gemini2.5pro]
 last_verified: 2026-06-13
+status: legacy
+successor: gemini-3.1-pro-preview
 ---
 
 # Gemini 2.5 Pro
@@ -35,6 +37,7 @@ last_verified: 2026-06-13
 - Unterstützte Funktionen u. a.: Function Calling, Code Execution, Structured Outputs, Caching, Batch API, Search Grounding, URL Context, File Search.
 
 ## Migrations-Hinweise
+- **Nachfolger-Caveat:** Der im Frontmatter genannte `successor` `gemini-3.1-pro-preview` ist ein **Preview-Modell**; eine GA-Id der Form `gemini-3.1-pro` existiert nicht (404 auf der Modellseite). Gemini 2.5 Pro bleibt damit das aktuell einzige GA-Pro-Modell — der Nachfolger ist der dokumentierte Weiterentwicklungspfad, aber kein stabiles Migrationsziel für Produktion.
 - **WEG von Gemini 2.5 Pro (z. B. zu Gemini 3.x):** Modell-spezifische Prompt-Hinweise prüfen — bei Gemini 3.x warnt Google ausdrücklich davor, die Temperature unter den Default zu senken. Thinking-Steuerung kann sich zwischen Generationen unterscheiden (Parameter/Defaults neu verifizieren). Höhere Output-Limits und Cutoff-Daten der Zielmodelle prüfen.
 - **HIN zu Gemini 2.5 Pro (z. B. von einem Nicht-Thinking-Modell):** Damit rechnen, dass standardmäßig **dynamisches Denken** aktiv ist und Thinking nicht abschaltbar ist — Kosten/Latenz durch Thinking-Tokens einplanen oder `thinkingBudget` (128–32.768) setzen. Bei Function Calling auf **Thought Signatures** achten und sie über REST/eigene Historienverwaltung zurückgeben. Für Format-Treue Few-Shot-Beispiele ergänzen; großen Kontext (bis ~1M Tokens) nutzen, dabei Frage ans Ende stellen. Knowledge-Cutoff Januar 2025 berücksichtigen (aktuelles Datum/Grounding in System-Instruction).
 

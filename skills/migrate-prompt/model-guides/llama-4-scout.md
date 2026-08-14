@@ -4,6 +4,7 @@ vendor: Meta
 family: Llama
 aliases: [llama4-scout, llama-4-scout-17b-16e, llama-4-scout-17b-16e-instruct, meta-llama-4-scout]
 last_verified: 2026-06-13
+status: current
 ---
 
 # Llama 4 Scout

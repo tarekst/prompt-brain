@@ -4,6 +4,8 @@ vendor: OpenAI
 family: GPT
 aliases: [gpt5-mini, gpt-5mini, gpt-5-mini-2025-08-07, gpt5mini]
 last_verified: 2026-06-13
+status: legacy
+successor: gpt-5.6-terra
 ---
 
 # GPT-5 mini

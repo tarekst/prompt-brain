@@ -1,0 +1,30 @@
+name: validate
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Registry / guide sync check
+        run: node scripts/check-registry-sync.mjs
+      - name: Install Claude Code CLI
+        # Pinned deliberately: an unpinned global install lets a CLI release turn a green
+        # build red with no commit. Bump this line when you want the new version.
+        run: npm install -g @anthropic-ai/claude-code@2.1.232
+      - name: Validate marketplace manifest (strict)
+        run: claude plugin validate . --strict
+      - name: Validate plugin manifest
+        # Not --strict — the root CLAUDE.md is maintainer project memory, intentionally
+        # not plugin-shipped context, and --strict fails on that warning.
+        run: claude plugin validate .claude-plugin/plugin.json

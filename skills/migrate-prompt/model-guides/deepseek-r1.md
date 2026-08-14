@@ -4,6 +4,8 @@ vendor: DeepSeek
 family: DeepSeek
 aliases: [deepseek-reasoner, r1]
 last_verified: 2026-06-13
+status: legacy
+successor: deepseek-v4-flash
 ---
 
 # DeepSeek-R1

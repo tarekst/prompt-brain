@@ -4,6 +4,7 @@ vendor: Google
 family: Gemma
 aliases: [gemma3, gemma-3-27b, gemma-3-27b-it, gemma-3-12b-it, gemma3-27b, gemma_3]
 last_verified: 2026-06-13
+status: current
 ---
 
 # Gemma 3

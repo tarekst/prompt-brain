@@ -2,8 +2,10 @@
 model: claude-sonnet-4-6
 vendor: Anthropic
 family: Claude
-aliases: [sonnet, sonnet-4.6, claude-sonnet-4.6, sonnet4.6]
+aliases: [sonnet-4.6, claude-sonnet-4.6, sonnet4.6]
 last_verified: 2026-06-13
+status: legacy
+successor: claude-sonnet-5
 ---
 
 # Claude Sonnet 4.6

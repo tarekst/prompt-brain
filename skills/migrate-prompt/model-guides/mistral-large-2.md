@@ -2,8 +2,10 @@
 model: mistral-large-2
 vendor: Mistral AI
 family: Mistral
-aliases: [mistral-large, mistral-large-2407, mistral-large-latest, mistral-large-2.0]
+aliases: [mistral-large-2407, mistral-large-2.0]
 last_verified: 2026-06-13
+status: legacy
+successor: mistral-large-3
 ---
 
 # Mistral Large 2
