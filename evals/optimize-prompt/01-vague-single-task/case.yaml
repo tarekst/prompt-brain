@@ -1,0 +1,55 @@
+schema_version: "1.1"
+name: 01-vague-single-task
+description: A vague one-line task must gain success criteria and a scope constraint without gaining new goals.
+tags: [optimize, single-task, structure, guardrails]
+execution:
+  prompt: |-
+    /prompt-brain:optimize-prompt Fix the login bug
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: optimized-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: changelog-rendered-outside-fence
+    type: regex
+    target: last_message
+    pattern: '```(?!.*```).*?\n#{2,4} \S'
+    flags: 's'
+    match: contains
+  - name: constraints-block-present
+    type: regex
+    target: last_message
+    pattern: '^#+ *\d*\.? *(constraints|guardrails)'
+    flags: 'im'
+    match: contains
+  - name: success-criteria-added
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt define an explicit, checkable done condition for the login-bug
+      fix -- a test to run, a verification step, or an observable behaviour to confirm -- rather
+      than only restating the task?
+  - name: no-invented-requirements
+    type: llm
+    focus: last_message
+    criteria: |-
+      Is every goal and constraint in the optimized prompt traceable to "Fix the login bug"?
+      Answer no if it adds unrelated deliverables the original never implied, such as a broader
+      refactor, new features, documentation, or CI work.
+expected_outcome: |-
+  - Outputs the reconstructed prompt inside a fenced code block.
+  - Outputs the changelog as rendered markdown (headings/bold/bullets), not in a code block.
+  - Adds explicit success criteria (a "done when" / verification step).
+  - Adds a constraints block limiting scope.
+  - Does NOT invent requirements beyond fixing the login bug.

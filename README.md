@@ -84,7 +84,7 @@ The optimization follows a 5-step algorithm:
 
 | Step | What happens |
 |------|-------------|
-| 1. Parse & Intent Extraction | Decomposes the prompt into goal, phases, scope, and implicit assumptions |
+| 1. Parse & Intent Extraction | Decomposes the prompt into 6 dimensions: goal, phases, scope, agent pattern, expected outputs, implicit assumptions |
 | 2. Weakness Analysis | Checks against 7 categories: context, output spec, sequencing, guardrails, success criteria, efficiency, subagent instructions |
 | 3. Best-Practice Matching | Classifies prompt type and selects applicable patterns |
 | 4. Prompt Reconstruction | Rebuilds from scratch with top-down structure and measurable criteria |
@@ -95,6 +95,33 @@ Both skills run on Claude Opus 5 and adapt their depth to the session's effort l
 [`skills/optimize-prompt/examples.md`](skills/optimize-prompt/examples.md) and
 [`skills/migrate-prompt/examples.md`](skills/migrate-prompt/examples.md) for worked examples,
 and [`evals/`](evals/) for the test scenarios of both skills.
+
+## Compatibility
+
+Both skills use the [Agent Skills open standard](https://agentskills.io) fields `name`,
+`description`, `license` and `compatibility`, alongside five Claude Code keys that sit outside
+the spec. Hosts that ignore unknown frontmatter keys (OpenCode, Grok Build) therefore load the
+`SKILL.md` files as-is; hosts that reject them (claude.ai upload, the Skills API) do not take
+them without a stripped copy. Two Claude Code features the skills build on are specific to it:
+the `$ARGUMENTS` and `${CLAUDE_EFFORT}`
+[string substitutions](https://code.claude.com/docs/en/skills#available-string-substitutions).
+
+| Host | How to install | What works | What does not |
+|------|----------------|------------|---------------|
+| Claude Code | `/plugin marketplace add tarekst/prompt-brain` | Everything | -- |
+| [OpenCode](https://opencode.ai/docs/skills/) | Copy or symlink `skills/optimize-prompt/` and `skills/migrate-prompt/` into `.claude/skills/` or `.opencode/skills/` -- it reads both | Skill body and lazy guide loading; unknown frontmatter keys are ignored, not errors | Does not install the plugin (no `.claude-plugin/` marketplace support); does not substitute `$ARGUMENTS` or `${CLAUDE_EFFORT}` |
+| [Grok Build](https://docs.x.ai/build/features/skills-plugins-marketplaces) | Copy the skill directories into `.grok/skills/` or `~/.grok/skills/` | Honors `when-to-use`, `argument-hint`, `user-invocable`, `disable-model-invocation` | Accepts but ignores `model`, `effort`, `license`, `compatibility` |
+| claude.ai upload / Skills API | Not shipped -- would need a stripped copy of each skill | Only the six [spec fields](https://agentskills.io/specification) are accepted | The Claude Code-only keys are a [hard error](https://code.claude.com/docs/en/skills#using-skill-frontmatter-outside-claude-code), not ignored, so the skills do not upload as-is |
+
+**Known limitation:** OpenCode documents no argument substitution for skills, so there you state
+the two models and the prompt in your message instead of as slash-command arguments. Grok Build
+documents `argument-hint` support but says nothing about substitution either way, so treat that
+as untested. Wherever `${CLAUDE_EFFORT}` is not substituted, the skills detect this and fall back
+to full depth, which is built in.
+
+Note that adding an `AGENTS.md` to a project makes OpenCode stop reading `CLAUDE.md` -- only the
+[first match per category](https://opencode.ai/docs/rules/) wins -- so this repo deliberately
+ships no `AGENTS.md`.
 
 ## License
 

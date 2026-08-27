@@ -1,0 +1,66 @@
+schema_version: "1.1"
+name: 08-code-refactoring-guardrails
+description: A refactoring prompt must hit the code-generation classifier branch — file-scope constraints, a verification loop, and a rollback strategy.
+tags: [optimize, refactoring, classifier, guardrails, verification]
+execution:
+  prompt: |-
+    /prompt-brain:optimize-prompt Refactor src/auth/session.ts to use the new token store and clean up the callers
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: optimized-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: changelog-rendered-outside-fence
+    type: regex
+    target: last_message
+    pattern: '```(?!.*```).*?\n#{2,4} \S'
+    flags: 's'
+    match: contains
+  - name: constraints-block-present
+    type: regex
+    target: last_message
+    pattern: '^#+ *\d*\.? *(constraints|guardrails)'
+    flags: 'im'
+    match: contains
+  - name: target-file-named
+    type: regex
+    target: last_message
+    pattern: 'src/auth/session\.ts'
+    match: contains
+  - name: file-scope-constrained
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt state which files or directories may be changed, and/or which
+      must not be touched, rather than leaving the edit scope open-ended?
+  - name: verification-feedback-loop
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt require running tests, a linter, or type checks as a feedback
+      loop after the changes -- not merely a vague "make sure it works"?
+  - name: rollback-strategy-defined
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt define what to do when a change fails or a check does not pass
+      -- an explicit revert/rollback instruction or a stop-and-report rule?
+expected_outcome: |-
+  - Exercises the "Code generation / refactoring" branch of the Step 3 classifier, which no
+    prose scenario covered.
+  - The optimized prompt limits which files may be changed (constraints on edit scope).
+  - It adds a verification loop: tests / linter / type checks run after the changes.
+  - It defines a rollback or stop-and-report strategy for failures.
+  - The refactoring target src/auth/session.ts and its callers stay the goal -- no invented
+    redesign, new abstraction, or unrelated cleanup.

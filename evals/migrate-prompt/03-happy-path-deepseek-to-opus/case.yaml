@@ -1,0 +1,107 @@
+schema_version: "1.1"
+name: 03-happy-path-deepseek-to-opus
+description: The reference happy path — exactly two guides read, source-specific reasoning scaffolding dropped, intent preserved.
+tags: [migrate, happy-path, lazy-loading, output-format]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt deepseek-r1 opus-4.8 <think>
+    Plan the steps first, then answer.
+    </think>
+    Denke Schritt für Schritt. You are an expert Go reviewer. Review the diff in review.patch and list every correctness bug. Think step by step before answering and show your reasoning, then give the final list.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: reads-exactly-two-guides
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    min: 2
+    max: 2
+  - name: reads-source-guide-deepseek-r1
+    type: tool_used
+    tool: Read
+    input_match: deepseek-r1.md
+    min: 1
+    max: 1
+  - name: reads-target-guide-claude-opus-4-8
+    type: tool_used
+    tool: Read
+    input_match: claude-opus-4-8.md
+    min: 1
+    max: 1
+  - name: no-guide-folder-enumeration
+    type: tool_used
+    tool: Glob
+    input_match: model-guides
+    max: 0
+  - name: migrated-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: changelog-rendered-outside-fence
+    type: regex
+    target: last_message
+    pattern: '```(?!.*```).*?\n#{2,4} \S'
+    flags: 's'
+    match: contains
+  - name: guide-stand-footer-present
+    type: regex
+    target: last_message
+    pattern: 'Guide-Stand'
+    match: contains
+  - name: guide-stand-carries-dates
+    type: regex
+    target: last_message
+    pattern: '\d{4}-\d{2}-\d{2}'
+    match: contains
+  - name: think-tag-scaffolding-dropped
+    type: regex
+    target: last_message
+    pattern: '```[^`]*<think>[^`]*```'
+    flags: 's'
+    match: not_contains
+  - name: no-algorithm-meta-commentary
+    type: regex
+    target: last_message
+    pattern: 'resolve both models|lazy loading|accommodation categor|reconstruct for the target'
+    flags: 'i'
+    match: not_contains
+  - name: task-intent-preserved
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the migrated prompt still ask for an expert Go review of the diff in review.patch that
+      lists every correctness bug and ends with a final list -- with no goal added or dropped?
+  - name: changelog-entries-are-what-why-pairs
+    type: llm
+    focus: last_message
+    criteria: |-
+      Is every changelog entry a What -> Why pair framed as source -> target: what was changed,
+      and why the target model needs it differently from the source model?
+  - name: forced-reasoning-scaffolding-removed
+    type: llm
+    focus: last_message
+    criteria: |-
+      Has the source-specific reasoning scaffolding been dropped from the migrated prompt -- the
+      <think> block and the forced "think step by step" / "show your reasoning" instructions --
+      because the target model handles reasoning differently?
+expected_outcome: |-
+  - Reads EXACTLY two files: `model-guides/deepseek-r1.md` and `model-guides/claude-opus-4-8.md`.
+  - Reads no third guide and does not enumerate/glob the `model-guides/` folder.
+  - Outputs the migrated prompt inside a fenced code block (copy-pasteable).
+  - Outputs the changelog as rendered markdown (headings/bold/bullets), NOT in a code block.
+  - Every changelog entry is a **What -> Why** pair framed as source -> target.
+  - Drops the source-specific reasoning scaffolding (`<think>` block, forced "think step by
+    step" / "show your reasoning") because the target handles reasoning differently.
+  - Preserves the task intent exactly: Go review, `review.patch`, correctness bugs, final list.
+  - Closes with a `Guide-Stand` footer listing both guides' `last_verified` dates.
+  - No meta-commentary about the 5 algorithm steps.

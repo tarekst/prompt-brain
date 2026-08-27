@@ -1,0 +1,71 @@
+schema_version: "1.1"
+name: 09-effort-adaptive-depth
+description: The output contract must hold at any session effort — two guides, a fenced prompt, a rendered changelog, no meta-commentary.
+tags: [migrate, effort, contract, lazy-loading]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt deepseek-r1 opus-4.8 Review the diff in review.patch and list every correctness bug. Think step by step before answering and show your reasoning.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: reads-exactly-two-guides
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    min: 2
+    max: 2
+  - name: reads-source-guide-deepseek-r1
+    type: tool_used
+    tool: Read
+    input_match: deepseek-r1.md
+    min: 1
+    max: 1
+  - name: reads-target-guide-claude-opus-4-8
+    type: tool_used
+    tool: Read
+    input_match: claude-opus-4-8.md
+    min: 1
+    max: 1
+  - name: migrated-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: changelog-rendered-outside-fence
+    type: regex
+    target: last_message
+    pattern: '```(?!.*```).*?\n#{2,4} \S'
+    flags: 's'
+    match: contains
+  - name: no-algorithm-meta-commentary
+    type: regex
+    target: last_message
+    pattern: 'depth calibration|resolve both models|lazy loading|accommodation categor'
+    flags: 'i'
+    match: not_contains
+  - name: two-section-contract-holds
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the output consist of exactly the two required sections -- a fenced migrated prompt
+      followed by a rendered (unfenced) migration changelog -- with no third section explaining
+      the algorithm or its depth calibration?
+expected_outcome: |-
+  - The invariant half of the original scenario: whatever the session effort, both runs must
+    produce a migrated prompt in a fenced code block plus a rendered changelog, and both must
+    read exactly two guides. The contract does not change with effort — these graders pin it.
+  - The differential half CANNOT be expressed in `case.yaml` (there is no effort field in the
+    execution schema), so verify it manually: run this same prompt once after `/effort low` and
+    once after `/effort max`.
+    - The `low` run must be visibly condensed: only the highest-impact migration changes, the
+      changelog limited to major items, and `examples.md` NOT read (SKILL.md's depth-calibration
+      block states this explicitly for `low`/`medium`).
+    - The `max` run must cover every accommodation category from Step 3.

@@ -1,0 +1,75 @@
+schema_version: "1.1"
+name: 13-arrow-and-quote-normalization
+description: The from-X-to-Y form with an arrow and quoted tokens must resolve both models correctly without a clarification round.
+tags: [migrate, parsing, normalization, resolution]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt from "grok-4.6" -> gemini-3.7-flash Extract every action item from meetings/2026-07-standup.md and return them as a markdown table with owner and due date.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: reads-exactly-two-guides
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    min: 2
+    max: 2
+  - name: reads-source-guide-grok-4-6
+    type: tool_used
+    tool: Read
+    input_match: grok-4.6.md
+    min: 1
+    max: 1
+  - name: reads-target-guide-gemini-3-7-flash
+    type: tool_used
+    tool: Read
+    input_match: gemini-3.7-flash.md
+    min: 1
+    max: 1
+  - name: older-grok-guide-not-read
+    type: tool_used
+    tool: Read
+    input_match: grok-4.md
+    max: 0
+  - name: migrated-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: prompt-body-preserved
+    type: regex
+    target: last_message
+    pattern: 'meetings/2026-07-standup\.md'
+    match: contains
+  - name: filler-tokens-not-treated-as-prompt
+    type: regex
+    target: last_message
+    pattern: '```[^`]*gemini-3\.7-flash[^`]*```'
+    flags: 's'
+    match: not_contains
+  - name: resolves-without-clarification
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response resolve grok-4.6 as the source and gemini-3.7-flash as the target from
+      the `from "X" -> Y` form -- stripping the quotes, the leading `from` and the arrow -- and
+      proceed with the migration without asking the user to restate the models?
+expected_outcome: |-
+  - Exercises SKILL.md's positional normalization rules together: a leading `from`, quoted model
+    tokens, and an `->` separator between the two model arguments.
+  - `from "grok-4.6" -> gemini-3.7-flash` must yield `grok-4.6` / `gemini-3.7-flash`.
+  - Reads exactly `model-guides/grok-4.6.md` and `model-guides/gemini-3.7-flash.md`; the
+    similarly named `grok-4.md` must not be read (the version-pinned token is not truncated).
+  - The filler tokens (`from`, quotes, `->`) are consumed as syntax, never leaked into the
+    migrated prompt body. The check anchors on the leaked MODEL token rather than on the
+    quoting, so every boundary-leak shape is caught, not only the zero-consumption one.
+  - The prompt body itself survives, including the `meetings/2026-07-standup.md` reference and
+    the markdown-table output contract.

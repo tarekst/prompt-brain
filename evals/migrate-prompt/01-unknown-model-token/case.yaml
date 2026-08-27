@@ -1,0 +1,63 @@
+schema_version: "1.1"
+name: 01-unknown-model-token
+description: An unresolvable current-model must stop the run with the registry listed and ZERO guide reads.
+tags: [migrate, degenerate, resolution, lazy-loading]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt gpt-6-turbo opus-4.8 Write release notes for our v2 API from the changelog in CHANGELOG.md
+  max_turns: 6
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: zero-guide-reads
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    max: 0
+  - name: zero-guide-globs
+    type: tool_used
+    tool: Glob
+    input_match: model-guides
+    max: 0
+  - name: names-the-failing-token
+    type: regex
+    target: last_message
+    pattern: 'gpt-6-turbo'
+    match: contains
+  - name: registry-ids-listed
+    type: regex
+    target: last_message
+    pattern: 'claude-opus-5'
+    match: contains
+  - name: identifies-which-argument-failed
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response say specifically that the CURRENT-MODEL argument (gpt-6-turbo) is the one
+      that failed to resolve, rather than reporting a generic "a model could not be resolved"?
+  - name: stops-without-migration
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response stop at the resolution error, producing no migrated prompt and no
+      migration changelog?
+  - name: no-near-match-substitution
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response refrain from silently substituting a near-match model (such as gpt-5 or
+      gpt-5-mini) for the unresolvable gpt-6-turbo, and refrain from describing a guide that does
+      not exist?
+expected_outcome: |-
+  - Resolution fails on `gpt-6-turbo` and the skill STOPS — no migrated prompt, no changelog.
+  - Names which argument failed (the `current-model`), not just "a model".
+  - Lists the available `id`s from the registry table in `SKILL.md`.
+  - Reads ZERO guide files (no `Read` on `model-guides/` at all) — including the guide for
+    the model that *did* resolve.
+  - Does NOT substitute a near-match (`gpt-5`, `gpt-5-mini`) and does NOT invent a guide.

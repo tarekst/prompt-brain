@@ -1,0 +1,89 @@
+schema_version: "1.1"
+name: 07-model-names-in-prompt-body
+description: Model names inside the prompt body must stay literal content and must never re-anchor the two leading model tokens.
+tags: [migrate, parsing, lazy-loading, robustness]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt gpt-5 claude-opus-4.8 Schreibe einen Vergleichsbericht zu gemini-2.5-pro, grok-4 und mistral-large-2: Latenz, Kosten und Tool-Calling. Beschreibe außerdem den Migrationspfad from gpt-4.1 -> o3 und erwähne o3 nur, wenn Zahlen vorliegen.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: reads-exactly-two-guides
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    min: 2
+    max: 2
+  - name: reads-source-guide-gpt-5
+    type: tool_used
+    tool: Read
+    input_match: gpt-5.md
+    min: 1
+    max: 1
+  - name: reads-target-guide-claude-opus-4-8
+    type: tool_used
+    tool: Read
+    input_match: claude-opus-4-8.md
+    min: 1
+    max: 1
+  - name: gemini-guide-not-read
+    type: tool_used
+    tool: Read
+    input_match: gemini-2.5-pro.md
+    max: 0
+  - name: grok-guide-not-read
+    type: tool_used
+    tool: Read
+    input_match: grok-4.md
+    max: 0
+  - name: mistral-guide-not-read
+    type: tool_used
+    tool: Read
+    input_match: mistral-large-2.md
+    max: 0
+  - name: o3-guide-not-read
+    type: tool_used
+    tool: Read
+    input_match: o3.md
+    max: 0
+  - name: body-model-names-survive-verbatim
+    type: regex
+    target: last_message
+    pattern: 'gemini-2\.5-pro.*grok-4.*mistral-large-2'
+    flags: 's'
+    match: contains
+  - name: in-body-arrow-phrase-untouched
+    type: regex
+    target: last_message
+    pattern: 'gpt-4\.1\s*(->|-->|→)\s*o3'
+    match: contains
+  - name: migrated-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: no-ambiguity-question
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response proceed with the migration from gpt-5 to claude-opus-4-8 without asking
+      which models were meant and without reporting an extra or ambiguous model, treating the
+      model names inside the prompt body as ordinary prompt content?
+expected_outcome: |-
+  - Parses `gpt-5` as `current-model` and `claude-opus-4.8` as `target-model` only — the model
+    names inside the prompt body do not shift or re-anchor the two leading tokens.
+  - Reads exactly `model-guides/gpt-5.md` and `model-guides/claude-opus-4-8.md`; reads none of
+    `gemini-2.5-pro.md`, `grok-4.md`, `mistral-large-2.md`, `o3.md`.
+  - Treats the in-body model names as literal prompt content: they survive verbatim in the
+    migrated prompt (still `gemini-2.5-pro`, `grok-4`, `mistral-large-2`, `gpt-4.1`, `o3`).
+  - Does NOT report an ambiguous/extra model or ask which models were meant.
+  - Applies the `from` / `->` normalization only around the two leading model tokens: the
+    `from gpt-4.1 -> o3` phrase inside the body is left untouched.

@@ -1,0 +1,64 @@
+schema_version: "1.1"
+name: 05-case-insensitive-aliases
+description: Uppercased id and alias tokens must resolve without error and produce a normal migration.
+tags: [migrate, resolution, aliases, parsing]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt DeepSeek-R1 OPUS-4.8 Summarize the incident timeline in postmortems/2026-05-outage.md into five bullets for the exec update.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: reads-exactly-two-guides
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    min: 2
+    max: 2
+  - name: reads-source-guide-deepseek-r1
+    type: tool_used
+    tool: Read
+    input_match: deepseek-r1.md
+    min: 1
+    max: 1
+  - name: reads-target-guide-claude-opus-4-8
+    type: tool_used
+    tool: Read
+    input_match: claude-opus-4-8.md
+    min: 1
+    max: 1
+  - name: migrated-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: changelog-rendered-outside-fence
+    type: regex
+    target: last_message
+    pattern: '```(?!.*```).*?\n#{2,4} \S'
+    flags: 's'
+    match: contains
+  - name: source-file-reference-preserved
+    type: regex
+    target: last_message
+    pattern: 'postmortems/2026-05-outage\.md'
+    match: contains
+  - name: resolves-without-asking-again
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response resolve both uppercased model tokens and proceed with the migration,
+      WITHOUT asking the user to re-enter the models and without falling back to listing the
+      model registry?
+expected_outcome: |-
+  - Resolves `DeepSeek-R1` (id, uppercased) and `OPUS-4.8` (alias, uppercased) without error.
+  - Reads exactly `model-guides/deepseek-r1.md` and `model-guides/claude-opus-4-8.md`.
+  - Does NOT ask the user to re-enter the models and does NOT list the registry as a fallback.
+  - Produces a normal migration (fenced migrated prompt + rendered changelog).

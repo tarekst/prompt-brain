@@ -1,0 +1,79 @@
+schema_version: "1.1"
+name: 15-current-target-no-successor-hint
+description: A current target with no documented successor must produce NO successor hint — the legacy branch has to stay silent. Both guides are current, so neither can make the word appear legitimately.
+tags: [migrate, freshness, negative-assertion, successor]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt grok-4.6 gemma-3 Classify each support ticket in tickets/inbox.json as billing, bug, or feature request and return one label per line.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: reads-exactly-two-guides
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    min: 2
+    max: 2
+  - name: reads-source-guide-grok-4-6
+    type: tool_used
+    tool: Read
+    input_match: grok-4.6.md
+    min: 1
+    max: 1
+  - name: reads-target-guide-gemma-3
+    type: tool_used
+    tool: Read
+    input_match: gemma-3.md
+    min: 1
+    max: 1
+  - name: no-successor-hint-emitted
+    type: regex
+    target: last_message
+    pattern: 'successor|nachfolger'
+    flags: 'i'
+    match: not_contains
+  - name: guide-stand-footer-present
+    type: regex
+    target: last_message
+    pattern: 'Guide-Stand'
+    match: contains
+  - name: migrated-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: prompt-body-preserved
+    type: regex
+    target: last_message
+    pattern: 'tickets/inbox\.json'
+    match: contains
+  - name: no-retarget-suggestion
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response avoid suggesting that the user migrate to a different, newer target model
+      instead? The requested target (gemma-3) is marked `status: current` and names no successor,
+      so any "consider migrating to X instead" note would be wrong.
+expected_outcome: |-
+  - Negative counterpart to scenario 08. Every other scenario would still pass if the skill
+    emitted the legacy/successor hint unconditionally; this case is the one that catches it.
+  - The target guide `gemma-3.md` carries `status: current` and no `successor` field, so the
+    Step 5 successor branch must NOT fire.
+  - The SOURCE guide `grok-4.6.md` is also `status: current` with no `successor`, deliberately:
+    the assertion is an unscoped "the word never appears", so neither guide may give the run a
+    legitimate reason to write it. A legacy source (with a `successor` in its frontmatter) would
+    false-fail this case while every other grader passed.
+  - No successor suggestion and no "migrate to a newer model instead" wording appears anywhere
+    in the output.
+  - The `Guide-Stand` footer still appears — the freshness footer is unconditional; only the
+    successor hint is conditional.
+  - Reads exactly `model-guides/grok-4.6.md` and `model-guides/gemma-3.md`, and delivers a
+    normal migration.

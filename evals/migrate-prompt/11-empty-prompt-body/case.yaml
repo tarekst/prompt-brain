@@ -1,0 +1,58 @@
+schema_version: "1.1"
+name: 11-empty-prompt-body
+description: Both models resolve but the prompt body is empty — ask for the prompt, keep the two resolved models, read ZERO guides.
+tags: [migrate, degenerate, parsing, lazy-loading]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt opus-4.8 gpt-5
+  max_turns: 6
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: zero-guide-reads
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    max: 0
+  - name: zero-guide-globs
+    type: tool_used
+    tool: Glob
+    input_match: model-guides
+    max: 0
+  - name: target-model-still-named
+    type: regex
+    target: last_message
+    pattern: 'gpt-5'
+    match: contains
+  - name: source-model-still-named
+    type: regex
+    target: last_message
+    pattern: 'opus-4'
+    match: contains
+  - name: asks-only-for-the-prompt
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response ask the user only for the missing prompt to migrate, while keeping both
+      already-resolved models (opus-4.8 as source, gpt-5 as target) rather than asking for the
+      models again?
+  - name: stops-without-migration
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response stop there, producing no migrated prompt and no migration changelog, and
+      inventing no example prompt to migrate?
+expected_outcome: |-
+  - Covers SKILL.md's branch "If both models resolved but the prompt component is empty, ask the
+    user for the prompt to migrate (keep the two resolved models) and stop" — untested by the
+    prose suite, and distinct from the missing-model-token branch.
+  - Both tokens resolve successfully, so the failure is the empty prompt body only.
+  - The response keeps the two resolved models and asks only for the prompt.
+  - Reads ZERO guide files: this branch is still inside Step 1, before lazy loading.
+  - Emits no migrated prompt, no changelog, and no invented example prompt.

@@ -1,0 +1,67 @@
+schema_version: "1.1"
+name: 07-missing-current-state-analysis
+description: A migration-plan prompt with no prior analysis must gain a current-state analysis phase BEFORE the change is planned.
+tags: [optimize, weakness-a, analysis-phase, sequencing]
+execution:
+  prompt: |-
+    /prompt-brain:optimize-prompt Create a migration plan to move our REST endpoints in src/api/ over to GraphQL
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: optimized-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: changelog-rendered-outside-fence
+    type: regex
+    target: last_message
+    pattern: '```(?!.*```).*?\n#{2,4} \S'
+    flags: 's'
+    match: contains
+  - name: phase-structure-present
+    type: regex
+    target: last_message
+    pattern: '^#+ *(phase|phase *1)\b'
+    flags: 'im'
+    match: contains
+  - name: original-scope-preserved
+    type: regex
+    target: last_message
+    pattern: 'src/api/'
+    match: contains
+  - name: analysis-phase-precedes-the-change
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt place an explicit analysis phase of the CURRENT state -- taking
+      inventory of the existing REST endpoints in src/api/ -- BEFORE the phase that designs or
+      writes the migration plan? Answer no if the plan is written first, or if no separate
+      analysis phase exists.
+  - name: analysis-produces-a-consumed-artifact
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the analysis phase produce a named written artifact (an explicit file path or a
+      defined output structure) that the later migration-plan phase is told to build on?
+  - name: no-invented-migration-decisions
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt avoid pre-deciding the migration itself -- no invented target
+      schema, library choice, timeline, or rollout strategy that the original never implied?
+expected_outcome: |-
+  - Covers weakness category A (Missing Context Basis), which no prose scenario exercised:
+    "Create a migration plan" without prior analysis means the plan rests on assumptions.
+  - The optimized prompt adds a current-state analysis phase BEFORE the migration-plan phase.
+  - That analysis phase writes a named artifact which the planning phase consumes (explicit
+    dependency, not two unordered instructions).
+  - Scope stays on src/api/ and no migration decisions are invented on the user's behalf.

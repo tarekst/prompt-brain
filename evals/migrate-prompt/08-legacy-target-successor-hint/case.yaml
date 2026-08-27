@@ -1,0 +1,85 @@
+schema_version: "1.1"
+name: 08-legacy-target-successor-hint
+description: A version-pinned legacy target must still be migrated to, with a successor hint added and the successor's guide never read.
+tags: [migrate, freshness, legacy, successor, lazy-loading]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt sonnet-4.6 opus-4.8 Refactor the ingest pipeline in src/ingest/ into a queue-backed worker, then update the README.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: reads-exactly-two-guides
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    min: 2
+    max: 2
+  - name: reads-source-guide-claude-sonnet-4-6
+    type: tool_used
+    tool: Read
+    input_match: claude-sonnet-4-6.md
+    min: 1
+    max: 1
+  - name: reads-target-guide-claude-opus-4-8
+    type: tool_used
+    tool: Read
+    input_match: claude-opus-4-8.md
+    min: 1
+    max: 1
+  - name: successor-guide-never-read
+    type: tool_used
+    tool: Read
+    input_match: claude-opus-5.md
+    max: 0
+  - name: migrated-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: guide-stand-footer-present
+    type: regex
+    target: last_message
+    pattern: 'Guide-Stand'
+    match: contains
+  - name: guide-stand-carries-dates
+    type: regex
+    target: last_message
+    pattern: '\d{4}-\d{2}-\d{2}'
+    match: contains
+  - name: successor-hint-names-claude-opus-5
+    type: regex
+    target: last_message
+    pattern: 'claude-opus-5'
+    match: contains
+  - name: successor-note-is-an-addition
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response still deliver the full migration to the REQUESTED target
+      (claude-opus-4-8), with the successor suggestion added as a note -- rather than refusing
+      the migration or silently retargeting it to claude-opus-5?
+  - name: task-intent-preserved
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the migrated prompt still ask to refactor the ingest pipeline in src/ingest/ into a
+      queue-backed worker and then update the README, with no goal added or dropped?
+expected_outcome: |-
+  - Both tokens resolve to version-pinned guides — `opus-4.8` must NOT be re-routed to
+    `claude-opus-5` (only the bare `opus` alias points at the newest generation).
+  - Reads exactly `model-guides/claude-sonnet-4-6.md` and `model-guides/claude-opus-4-8.md`.
+  - The changelog closes with a `Guide-Stand` footer naming both guides' `last_verified` dates.
+  - Because the TARGET guide carries `status: legacy` with `successor: claude-opus-5`, the
+    changelog notes this and suggests migrating to the successor instead — without refusing
+    or silently retargeting the requested migration.
+  - Still produces the full migrated prompt for the requested target (the successor note is
+    an addition, not a substitution).
+  - The successor's own guide is never opened — two guides per run, always.

@@ -1,0 +1,76 @@
+schema_version: "1.1"
+name: 04-unbelegt-flagged-not-asserted
+description: Guide points marked "(unbelegt)" must be flagged as a migration limitation in the changelog, never asserted as target-model features.
+tags: [migrate, honesty, unbelegt, lazy-loading]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt opus-4.8 gemma-3 Extract every invoice line item from invoices/*.pdf and return strict JSON matching {"items":[{"sku":string,"qty":number,"total":number}]}. Reason about ambiguous rows before deciding.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: reads-exactly-two-guides
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    min: 2
+    max: 2
+  - name: reads-source-guide-claude-opus-4-8
+    type: tool_used
+    tool: Read
+    input_match: claude-opus-4-8.md
+    min: 1
+    max: 1
+  - name: reads-target-guide-gemma-3
+    type: tool_used
+    tool: Read
+    input_match: gemma-3.md
+    min: 1
+    max: 1
+  - name: migrated-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: json-contract-survives
+    type: regex
+    target: last_message
+    pattern: 'sku'
+    match: contains
+  - name: no-asserted-native-structured-output
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response avoid asserting that the target model has a native structured-output or
+      JSON-schema feature? The target guide marks that as "(unbelegt)" / unverified, so the
+      migration must instead keep the JSON contract as plain prompt-level format instructions.
+  - name: unverified-points-flagged-in-changelog
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the changelog explicitly name the "(unbelegt)" / unverified points as a limitation of
+      this migration -- for example in a closing guide-gaps note -- rather than presenting them
+      as established fact or omitting them silently?
+  - name: migrated-prompt-free-of-hedging
+    type: llm
+    focus: last_message
+    criteria: |-
+      Is the migrated prompt itself free of hedging meta-notes about guide uncertainty, with all
+      uncertainty confined to the changelog?
+expected_outcome: |-
+  - Reads exactly `model-guides/claude-opus-4-8.md` and `model-guides/gemma-3.md`.
+  - Does NOT assert a structured-output/JSON-schema feature for the target — the target guide
+    marks that as "(unbelegt)".
+  - Instead applies the safer change (explicit format instructions in the prompt text) and
+    keeps the JSON contract as prompt-level instruction.
+  - The changelog explicitly flags the "(unbelegt)" / unverified points as a limitation of the
+    migration (e.g. in a closing "guide gaps" note), rather than presenting them as fact.
+  - Uncertainty appears in the changelog only — the migrated prompt itself stays clean of
+    hedging meta-notes.

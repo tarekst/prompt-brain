@@ -1,0 +1,51 @@
+schema_version: "1.1"
+name: 04-language-preservation-german
+description: A German input prompt must yield a German optimized prompt and a German changelog with umlauts intact.
+tags: [optimize, language, german, utf8]
+execution:
+  prompt: |-
+    /prompt-brain:optimize-prompt Analysiere unsere Codebasis und erstelle eine Architekturübersicht
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: optimized-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: german-characters-intact
+    type: regex
+    target: last_message
+    pattern: '[äöüÄÖÜß]'
+    match: contains
+  - name: no-mojibake
+    type: regex
+    target: last_message
+    pattern: 'Ã'
+    match: not_contains
+  - name: output-written-in-german
+    type: llm
+    focus: last_message
+    criteria: |-
+      Are BOTH the optimized prompt and the changelog written in German, matching the input
+      language? Answer no if either one is in English.
+  - name: vague-overview-made-concrete
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt replace the vague "Architekturübersicht" with a concrete output
+      specification -- named sections and/or an explicit target file path -- instead of leaving
+      the deliverable undefined?
+expected_outcome: |-
+  - The reconstructed prompt is written in German (matches input language).
+  - The changelog is also in German.
+  - German characters (ä, ö, ü) render correctly (UTF-8 preserved).
+  - Replaces the vague "Architekturübersicht" with a concrete output spec (sections/path).

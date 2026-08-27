@@ -1,0 +1,68 @@
+schema_version: "1.1"
+name: 05-filler-adjectives-no-scope
+description: Filler adjectives must be replaced by measurable criteria and the unbounded scope narrowed to named directories.
+tags: [optimize, filler, scope, structure]
+execution:
+  prompt: |-
+    /prompt-brain:optimize-prompt Please carefully and thoroughly analyze the entire codebase and create a comprehensive, detailed architectural overview document that covers everything important
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: optimized-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: changelog-rendered-outside-fence
+    type: regex
+    target: last_message
+    pattern: '```(?!.*```).*?\n#{2,4} \S'
+    flags: 's'
+    match: contains
+  - name: md-path-present
+    type: regex
+    target: last_message
+    pattern: '[\w./-]+\.md'
+    match: contains
+  - name: output-document-path-defined
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt assign a concrete OUTPUT file path -- a path the run WRITES --
+      for the architectural overview document it produces? Answer no if the only file paths
+      present are sources to read/analyze, or if the document is named without a path.
+  - name: no-algorithm-meta-commentary
+    type: regex
+    target: last_message
+    pattern: 'weakness analysis|best-practice matching|prompt reconstruction|changelog generation|5-step algorithm'
+    flags: 'i'
+    match: not_contains
+  - name: filler-adjectives-replaced-by-criteria
+    type: llm
+    focus: last_message
+    criteria: |-
+      Are the original's filler adjectives ("carefully", "thoroughly", "comprehensive",
+      "detailed", "everything important") either removed or backed by measurable criteria --
+      named required sections, a defined structure, or explicit checks?
+  - name: scope-limited-to-named-areas
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt limit the analysis scope by naming concrete directories, modules
+      or areas, instead of keeping the unbounded "the entire codebase"?
+expected_outcome: |-
+  - Removes/justifies filler adjectives ("carefully", "thoroughly", "comprehensive") by
+    replacing them with measurable criteria (named sections, scope).
+  - Limits scope (names directories/areas instead of "the entire codebase").
+  - Defines the output document structure and a concrete OUTPUT path. The `.md` regex is only a
+    smoke check -- it cannot tell an output path from a source path the prompt tells Claude to
+    read, so the `llm` grader carries this bullet.
+  - No meta-commentary explaining the algorithm to the user.

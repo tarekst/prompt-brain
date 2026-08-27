@@ -1,0 +1,60 @@
+schema_version: "1.1"
+name: 03-already-structured-honesty
+description: An already well-structured prompt must come back essentially unchanged with an honest no-significant-weaknesses verdict.
+tags: [optimize, honesty, no-op]
+execution:
+  prompt: |-
+    /prompt-brain:optimize-prompt ## Goal
+    Add a dark mode toggle to the settings page.
+    ## Phase 1
+    Analyze src/components/Settings.tsx for the current theme logic.
+    ## Phase 2
+    Implement the toggle using the existing useTheme hook.
+    ## Constraints
+    Do not modify the global CSS. Only use CSS modules.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: optimized-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: changelog-rendered-outside-fence
+    type: regex
+    target: last_message
+    pattern: '```(?!.*```).*?\n#{2,4} \S'
+    flags: 's'
+    match: contains
+  - name: original-constraints-survive
+    type: regex
+    target: last_message
+    pattern: 'CSS modules'
+    flags: 'i'
+    match: contains
+  - name: honest-no-significant-weaknesses
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the changelog state that the prompt was already well-structured and that no
+      significant weaknesses were found, instead of presenting a list of improvements it did
+      not actually need to make?
+  - name: no-fabricated-phases-or-constraints
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt keep the original's goal, its two phases (analyze
+      src/components/Settings.tsx, then implement via the existing useTheme hook) and its two
+      constraints, WITHOUT adding new phases, new constraints, or new deliverables?
+expected_outcome: |-
+  - Returns the prompt essentially unchanged (no fabricated phases or constraints).
+  - Changelog states that no significant weaknesses were found.
+  - Does NOT force structural changes for the sake of changing.

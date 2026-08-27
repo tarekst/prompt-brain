@@ -1,0 +1,78 @@
+schema_version: "1.1"
+name: 06-german-prompt-preserved
+description: A German input prompt must stay German through the migration, with umlauts intact and the goal unchanged.
+tags: [migrate, language, german, utf8]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt sonnet-4.6 gpt-5 Analysiere unsere Codebasis unter src/ und erstelle eine Architekturübersicht. Denke gründlich nach, bevor du antwortest, und begründe jede Schlussfolgerung ausführlich.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: reads-exactly-two-guides
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    min: 2
+    max: 2
+  - name: reads-source-guide-claude-sonnet-4-6
+    type: tool_used
+    tool: Read
+    input_match: claude-sonnet-4-6.md
+    min: 1
+    max: 1
+  - name: reads-target-guide-gpt-5
+    type: tool_used
+    tool: Read
+    input_match: gpt-5.md
+    min: 1
+    max: 1
+  - name: migrated-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: german-characters-intact
+    type: regex
+    target: last_message
+    pattern: '[äöüÄÖÜß]'
+    match: contains
+  - name: no-mojibake
+    type: regex
+    target: last_message
+    pattern: 'Ã'
+    match: not_contains
+  - name: original-scope-preserved
+    type: regex
+    target: last_message
+    pattern: 'src/'
+    match: contains
+  - name: output-language-stays-german
+    type: llm
+    focus: last_message
+    criteria: |-
+      Are BOTH the migrated prompt and the migration changelog written in German, matching the
+      input language? Answer no if either one switched to English.
+  - name: reasoning-phrasing-retuned-not-translated
+    type: llm
+    focus: last_message
+    criteria: |-
+      Was the reasoning/verbosity instruction re-tuned for the target model's own conventions
+      rather than carried over as a literal translation of "Denke gründlich nach ... begründe
+      jede Schlussfolgerung ausführlich", while the goal (src/ analysis, Architekturübersicht)
+      stays unchanged?
+expected_outcome: |-
+  - The migrated prompt is written in German (matches the input language).
+  - The changelog is also in German.
+  - German characters (ä, ö, ü, ß) render correctly — UTF-8 preserved, no mojibake in either
+    the code block or the changelog.
+  - Reads exactly `model-guides/claude-sonnet-4-6.md` and `model-guides/gpt-5.md`.
+  - Re-tunes the reasoning/verbosity phrasing for the target instead of translating it
+    literally, while keeping the goal (`src/` analysis, Architekturübersicht) unchanged.

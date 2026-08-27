@@ -1,0 +1,80 @@
+schema_version: "1.1"
+name: 12-bare-family-alias-newest
+description: Bare family aliases must resolve to the NEWEST generation of that family, not to a version-pinned older guide.
+tags: [migrate, aliases, resolution, lazy-loading]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt opus sonnet Draft the migration guide section for our v3 SDK based on docs/v2-to-v3.md.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: reads-exactly-two-guides
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    min: 2
+    max: 2
+  - name: reads-newest-opus-guide
+    type: tool_used
+    tool: Read
+    input_match: claude-opus-5.md
+    min: 1
+    max: 1
+  - name: reads-newest-sonnet-guide
+    type: tool_used
+    tool: Read
+    input_match: claude-sonnet-5.md
+    min: 1
+    max: 1
+  - name: legacy-opus-guide-not-read
+    type: tool_used
+    tool: Read
+    input_match: claude-opus-4-8.md
+    max: 0
+  - name: legacy-sonnet-guide-not-read
+    type: tool_used
+    tool: Read
+    input_match: claude-sonnet-4-6.md
+    max: 0
+  - name: no-guide-folder-enumeration
+    type: tool_used
+    tool: Glob
+    input_match: model-guides
+    max: 0
+  - name: migrated-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: source-file-reference-preserved
+    type: regex
+    target: last_message
+    pattern: 'docs/v2-to-v3\.md'
+    match: contains
+  - name: resolved-models-reported-as-newest
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response treat the bare alias `opus` as claude-opus-5 and the bare alias `sonnet`
+      as claude-sonnet-5 -- the newest generation of each family -- rather than resolving either
+      one to an older version-pinned model such as claude-opus-4-8 or claude-sonnet-4-6?
+expected_outcome: |-
+  - Encodes SKILL.md's alias policy: a bare family alias (`opus`, `sonnet`, `mistral-large`)
+    always resolves to the NEWEST guide of that family. A family-level `…-latest` that names no
+    generation (`mistral-large-latest`) is rolling and moves with the bare alias; a `…-latest`
+    that names a specific generation (`grok-4-latest`, `grok-4.6-latest`) is version-pinned and
+    stays on its own guide. `*-latest` is NOT a bare family alias as a class.
+  - `opus` must resolve to `claude-opus-5` and `sonnet` to `claude-sonnet-5`.
+  - Reads exactly `model-guides/claude-opus-5.md` and `model-guides/claude-sonnet-5.md`, and
+    reads neither `claude-opus-4-8.md` nor `claude-sonnet-4-6.md`.
+  - Does not enumerate/glob the `model-guides/` folder to work out which generation is newest —
+    the registry table in SKILL.md is the resolver, which is what keeps lazy loading honest.
+  - Produces a normal migration (fenced migrated prompt + rendered changelog).

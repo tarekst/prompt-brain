@@ -1,0 +1,75 @@
+schema_version: "1.1"
+name: 02-multi-step-research-agents
+description: A parallel research task must gain a shared output schema, source error handling, explicit sequencing, and concrete file paths.
+tags: [optimize, research, subagents, sequencing]
+execution:
+  prompt: |-
+    /prompt-brain:optimize-prompt Research these 10 libraries and write a comparison document. Check their GitHub repos, read their docs, and summarize pros and cons for each one.
+  max_turns: 10
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: optimized-prompt-in-code-fence
+    type: regex
+    target: last_message
+    pattern: '```.*```'
+    flags: 's'
+    match: contains
+  - name: changelog-rendered-outside-fence
+    type: regex
+    target: last_message
+    pattern: '```(?!.*```).*?\n#{2,4} \S'
+    flags: 's'
+    match: contains
+  - name: phase-structure-present
+    type: regex
+    target: last_message
+    pattern: '^#+ *(phase|phase *1)\b'
+    flags: 'im'
+    match: contains
+  - name: md-path-present
+    type: regex
+    target: last_message
+    pattern: '[\w./-]+\.md'
+    match: contains
+  - name: output-file-paths-assigned
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt assign a concrete OUTPUT file path -- a path the run WRITES,
+      not a source file it reads -- for the comparison document it produces, AND a per-library
+      result file path for each research agent's findings? Answer no if the only file paths
+      present are inputs to read, or if the deliverables are named without a path.
+  - name: shared-output-schema
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt define ONE shared output template or schema (named required
+      sections) that every research agent must fill in, rather than telling each agent to
+      "summarize" in its own words?
+  - name: unreachable-source-handling
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt state what an agent must do when a source is unreachable or a
+      fact is missing -- record the gap instead of fabricating metrics, APIs, or numbers?
+  - name: synthesis-depends-on-research
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the optimized prompt make the comparison/synthesis step explicitly depend on the
+      research step being finished -- a stated dependency or wait condition, not two
+      independent instructions?
+expected_outcome: |-
+  - Introduces a single shared output schema/template applied by every agent.
+  - Adds error handling for unreachable sources (no fabricated metrics/APIs).
+  - Makes the synthesis phase depend on the research phase (explicit sequencing).
+  - Assigns concrete OUTPUT file paths: one per-library result file per research agent, plus
+    the comparison document. The `.md` regex is only a smoke check -- it cannot tell an output
+    path from a source path the agent is told to read, so the `llm` grader carries this bullet.

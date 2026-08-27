@@ -1,0 +1,53 @@
+schema_version: "1.1"
+name: 10-missing-model-token
+description: With the target-model token missing entirely, the skill must ask for the full argument form and stop, reading ZERO guides.
+tags: [migrate, degenerate, parsing, lazy-loading]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt gpt-5
+  max_turns: 6
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: zero-guide-reads
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    max: 0
+  - name: zero-guide-globs
+    type: tool_used
+    tool: Glob
+    input_match: model-guides
+    max: 0
+  - name: requests-the-full-argument-form
+    type: regex
+    target: last_message
+    pattern: 'current-model.{0,80}target-model'
+    flags: 's'
+    match: contains
+  - name: asks-and-stops
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response ask the user to supply `<current-model> <target-model> <prompt>` and stop
+      there, producing no migrated prompt and no migration changelog?
+  - name: no-invented-target-model
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response avoid choosing, guessing, or defaulting to a target model on the user's
+      behalf, and avoid treating any part of the missing input as a prompt to migrate?
+expected_outcome: |-
+  - Covers SKILL.md's explicit branch "If a model token is missing entirely, ask the user to
+    supply `<current-model> <target-model> <prompt>` and stop" — untested by the prose suite.
+  - Only one token is supplied, so `target-model` is missing entirely (not unresolvable).
+  - The skill asks for the full three-part argument form and stops.
+  - Reads ZERO guide files — the missing-token branch precedes Step 2 entirely, so even the
+    resolvable `gpt-5` guide must not be opened.
+  - Does NOT pick a target model itself and does NOT treat the leftover input as the prompt.

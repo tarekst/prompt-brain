@@ -18,13 +18,49 @@ jobs:
           node-version: 22
       - name: Registry / guide sync check
         run: node scripts/check-registry-sync.mjs
+      - name: Skill frontmatter check
+        run: node scripts/check-frontmatter.mjs
+      - name: Release consistency check
+        run: node scripts/check-release-consistency.mjs
       - name: Install Claude Code CLI
         # Pinned deliberately: an unpinned global install lets a CLI release turn a green
         # build red with no commit. Bump this line when you want the new version.
-        run: npm install -g @anthropic-ai/claude-code@2.1.232
+        run: npm install -g @anthropic-ai/claude-code@2.1.246
       - name: Validate marketplace manifest (strict)
         run: claude plugin validate . --strict
-      - name: Validate plugin manifest
-        # Not --strict — the root CLAUDE.md is maintainer project memory, intentionally
-        # not plugin-shipped context, and --strict fails on that warning.
-        run: claude plugin validate .claude-plugin/plugin.json
+      - name: Validate plugin manifest (warnings gated)
+        # Deliberately NOT --strict: the root CLAUDE.md is maintainer project memory,
+        # intentionally not plugin-shipped context, so the validator warns about it on
+        # every run and --strict would turn that permanent, accepted warning into a hard
+        # failure. But plain non-strict validation exits 0 on *all* warnings — an
+        # unrecognized top-level plugin.json field (a typo such as "komands") is only a
+        # warning, so it would otherwise ship CI-green. So: run the same non-strict
+        # command, then fail on any warning that is not the one allowlisted below.
+        run: |
+          set -o pipefail
+          claude plugin validate .claude-plugin/plugin.json 2>&1 | tee plugin-validate.log
+          # The validator prints each individual warning as an indented bullet line
+          # ("  <bullet> root: ..."), while its summary lines ("Found N warning(s):",
+          # "Validation passed with warnings") start at column 0. Matching only the
+          # indented lines therefore inspects the warnings themselves and never the
+          # summaries — which is what makes a clean run come out empty here.
+          #
+          # Allowlist — the single warning this repo accepts permanently. CLAUDE.md is
+          # maintainer project memory, not context shipped with the plugin, so this
+          # warning will never be "fixed" and is subtracted instead. It is matched on
+          # its full sentence, so a *different* warning that merely mentions CLAUDE.md
+          # is not silently swallowed. Every OTHER warning is a real defect and fails.
+          ALLOWED_WARNING='CLAUDE.md at the plugin root is not loaded as project context'
+          unexpected="$(grep -E '^[[:space:]]+[^[:space:]]+ ' plugin-validate.log | grep -vF "$ALLOWED_WARNING" || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Non-allowlisted warning(s) from 'claude plugin validate .claude-plugin/plugin.json':"
+            echo "$unexpected"
+            exit 1
+          fi
+      # Eval suite (evals/**/case.yaml) — deliberately NOT a build gate. `claude plugin
+      # eval` is currently early access ("claude plugin eval help" prints that notice), so
+      # it does not run on a plain CI runner and a blocking step would red-line every
+      # build. Uncomment once the subcommand is generally available:
+      #
+      # - name: Plugin eval suite
+      #   run: claude plugin eval . --threshold 0.8

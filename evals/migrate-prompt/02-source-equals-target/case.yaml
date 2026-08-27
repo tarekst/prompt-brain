@@ -1,0 +1,50 @@
+schema_version: "1.1"
+name: 02-source-equals-target
+description: Two different aliases of the same model must be recognized as one id and stop the run with ZERO guide reads.
+tags: [migrate, degenerate, resolution, aliases, lazy-loading]
+execution:
+  prompt: |-
+    /prompt-brain:migrate-prompt opus-4.8 claude-opus-4.8 Refactor src/api/client.ts to use the new fetch wrapper. Keep the public signature stable.
+  max_turns: 6
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
+graders:
+  - name: skill-invoked
+    type: tool_used
+    tool: Skill
+    min: 1
+    arm: with-only
+  - name: zero-guide-reads
+    type: tool_used
+    tool: Read
+    input_match: model-guides
+    max: 0
+  - name: zero-guide-globs
+    type: tool_used
+    tool: Glob
+    input_match: model-guides
+    max: 0
+  - name: resolved-id-named
+    type: regex
+    target: last_message
+    pattern: 'claude-opus-4-8|claude-opus-4\.8'
+    match: contains
+  - name: recognizes-same-model
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response state that both tokens resolve to the SAME model, and that the prompt is
+      therefore already targeted at that model?
+  - name: stops-without-migration
+    type: llm
+    focus: last_message
+    criteria: |-
+      Does the response stop without emitting a migrated prompt or a migration changelog, and
+      without inventing cosmetic changes to justify a migration that is not needed?
+expected_outcome: |-
+  - Recognizes both tokens resolve to the same `id` (`claude-opus-4-8`) despite different aliases.
+  - Reports that the prompt is already targeted at that model and stops.
+  - Reads ZERO guide files.
+  - Does NOT emit a migrated prompt or a changelog, and does NOT invent cosmetic changes to
+    justify a migration.
